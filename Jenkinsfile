@@ -15,8 +15,6 @@ pipeline {
 
     stages {
 
-        // ✅ Removed extra Clone stage (Jenkins already does checkout)
-
         stage('Build Docker Image') {
             steps {
                 sh '''
@@ -27,11 +25,16 @@ pipeline {
 
         stage('Login to AWS ECR') {
             steps {
-                sh '''
-                aws ecr get-login-password --region $AWS_REGION | \
-                docker login --username AWS --password-stdin \
-                $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-                '''
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: '97329444556'
+                ]]) {
+                    sh '''
+                    aws ecr get-login-password --region $AWS_REGION | \
+                    docker login --username AWS --password-stdin \
+                    $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+                    '''
+                }
             }
         }
 
@@ -45,21 +48,31 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                sh '''
-                docker push $ECR_URI:$IMAGE_TAG
-                '''
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: '97329444556'
+                ]]) {
+                    sh '''
+                    docker push $ECR_URI:$IMAGE_TAG
+                    '''
+                }
             }
         }
 
         stage('Deploy to ECS') {
             steps {
-                sh '''
-                aws ecs update-service \
-                  --cluster $ECS_CLUSTER \
-                  --service $ECS_SERVICE \
-                  --force-new-deployment \
-                  --region $AWS_REGION
-                '''
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: '97329444556'
+                ]]) {
+                    sh '''
+                    aws ecs update-service \
+                      --cluster $ECS_CLUSTER \
+                      --service $ECS_SERVICE \
+                      --force-new-deployment \
+                      --region $AWS_REGION
+                    '''
+                }
             }
         }
     }
