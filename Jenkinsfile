@@ -27,7 +27,7 @@ pipeline {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: '97329444556'
+                    credentialsId: '973294445568'   // ✅ FIXED
                 ]]) {
                     sh '''
                     aws ecr get-login-password --region $AWS_REGION | \
@@ -50,7 +50,7 @@ pipeline {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: '97329444556'
+                    credentialsId: '973294445568'   // ✅ FIXED
                 ]]) {
                     sh '''
                     docker push $ECR_URI:$IMAGE_TAG
@@ -63,7 +63,7 @@ pipeline {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: '97329444556'
+                    credentialsId: '973294445568'   // ✅ FIXED
                 ]]) {
                     sh '''
                     aws ecs update-service \
