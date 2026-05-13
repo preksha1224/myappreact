@@ -6,7 +6,8 @@ pipeline {
         ACCOUNT_ID = '973294445568'
         ECR_REPO = 'myappreact'
 
-        IMAGE_TAG = "${973294445568.dkr.ecr.us-west-1.amazonaws.com/myappreact:latest}"
+        IMAGE_TAG = "latest"
+        ECR_URI = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
 
         ECS_CLUSTER = 'clustertask'
         ECS_SERVICE = 'connect1-service-af85vv5l'
@@ -20,7 +21,7 @@ pipeline {
             }
         }
 
-        stage('Build Docker') {
+        stage('Build Docker Image') {
             steps {
                 sh '''
                 docker build -t $ECR_REPO:$IMAGE_TAG .
@@ -28,7 +29,7 @@ pipeline {
             }
         }
 
-        stage('Login ECR') {
+        stage('Login to AWS ECR') {
             steps {
                 sh '''
                 aws ecr get-login-password --region $AWS_REGION | \
@@ -41,8 +42,7 @@ pipeline {
         stage('Tag Docker Image') {
             steps {
                 sh '''
-                docker tag $ECR_REPO:$IMAGE_TAG \
-                $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+                docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
                 '''
             }
         }
@@ -50,13 +50,12 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 sh '''
-                docker push \
-                $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+                docker push $ECR_URI:$IMAGE_TAG
                 '''
             }
         }
 
-        stage('Deploy ECS') {
+        stage('Deploy to ECS') {
             steps {
                 sh '''
                 aws ecs update-service \
