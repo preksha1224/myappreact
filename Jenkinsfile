@@ -15,11 +15,7 @@ pipeline {
 
     stages {
 
-        stage('Clone') {
-            steps {
-                git 'https://github.com/preksha1224/myappreact.git'
-            }
-        }
+        // ✅ Removed extra Clone stage (Jenkins already does checkout)
 
         stage('Build Docker Image') {
             steps {
